@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ArticleStoreRequest;
+use App\Http\Requests\ArticleUpdateRequest;
 use App\Models\Article;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class ArticleController extends Controller
@@ -12,9 +14,9 @@ class ArticleController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return 'articles';
+        return Article::paginate(15, '*', 'page', $request->page);
     }
 
     /**
@@ -31,8 +33,7 @@ class ArticleController extends Controller
     public function store(ArticleStoreRequest $request)
     {
         $article = array_merge(['created_by' => auth()->user()->id], $request->validated());
-        $article = Article::create($article);
-        Log::info($article);
+        Article::create($article);
         return response()->json([
             'message' => 'Article created'
         ], 200);
@@ -57,9 +58,14 @@ class ArticleController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(ArticleUpdateRequest $request, string $id)
     {
-        //
+        $article = Article::find($id);
+        $article->update($request->validated());
+        return response([
+            'message' => 'Article updated',
+            'article' => $article
+        ]);
     }
 
     /**
